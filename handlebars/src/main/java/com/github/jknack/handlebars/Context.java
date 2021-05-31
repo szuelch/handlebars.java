@@ -242,6 +242,11 @@ public class Context {
     private Context context;
 
     /**
+     * Flag to turn on
+     */
+    private boolean withDefaultResolvers = true;
+
+    /**
      * Creates a new context builder.
      *
      * @param parent The parent context. Required.
@@ -259,6 +264,18 @@ public class Context {
     private Builder(final Object model) {
       context = Context.root(model);
       context.setResolver(new CompositeValueResolver(ValueResolver.VALUE_RESOLVERS));
+    }
+
+    /**
+     * Call this before setting ValueResolvers
+     * to make sure that the default ValueResolvers
+     * are not added.
+     *
+     * @return This Builder
+     */
+    public Builder withoutDefaultResolvers() {
+      withDefaultResolvers = false;
+      return this;
     }
 
     /**
@@ -292,8 +309,8 @@ public class Context {
      */
     public Builder resolver(final ValueResolver... resolvers) {
       notEmpty(resolvers, "At least one value-resolver must be present.");
-      boolean mapResolver = Stream.of(resolvers).anyMatch(MapValueResolver.class::isInstance);
-      if (!mapResolver) {
+      boolean setMapResolver = withDefaultResolvers && !Stream.of(resolvers).anyMatch(MapValueResolver.class::isInstance);
+      if (setMapResolver) {
         ValueResolver[] safeResolvers = new ValueResolver[resolvers.length + 1];
         System.arraycopy(resolvers, 0, safeResolvers, 0, resolvers.length);
         safeResolvers[safeResolvers.length - 1] = MapValueResolver.INSTANCE;
@@ -301,6 +318,7 @@ public class Context {
       } else {
         context.setResolver(new CompositeValueResolver(resolvers));
       }
+
       return this;
     }
 
