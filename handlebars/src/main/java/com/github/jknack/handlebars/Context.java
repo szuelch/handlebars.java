@@ -335,7 +335,7 @@ public class Context {
       merged.addAll(Arrays.asList(ValueResolver.VALUE_RESOLVERS));
       merged.addAll(Arrays.asList(resolvers));
       context.setResolver(
-          new CompositeValueResolver(merged.toArray(new ValueResolver[merged.size()])));
+              new CompositeValueResolver(merged.toArray(new ValueResolver[merged.size()])));
       return this;
     }
 
@@ -765,7 +765,7 @@ public class Context {
    * @return A new block param context.
    */
   public static Context newBlockParamContext(final Context parent, final List<String> names,
-      final List<Object> values) {
+          final List<Object> values) {
     Map<String, Object> hash = new HashMap<>();
     for (int i = 0; i < Math.min(values.size(), names.size()); i++) {
       hash.put(names.get(i), values.get(i));
@@ -782,7 +782,7 @@ public class Context {
    * @return A new context.
    */
   public static Context newPartialContext(final Context ctx, final String scope,
-      final Map<String, Object> hash) {
+          final Map<String, Object> hash) {
     return new PartialCtx(ctx, ctx.get(scope), hash);
   }
 
