@@ -242,6 +242,11 @@ public class Context {
     private Context context;
 
     /**
+     * Flag to turn on
+     */
+    private boolean withDefaultResolvers = true;
+
+    /**
      * Creates a new context builder.
      *
      * @param parent The parent context. Required.
@@ -259,6 +264,18 @@ public class Context {
     private Builder(final Object model) {
       context = Context.root(model);
       context.setResolver(new CompositeValueResolver(ValueResolver.VALUE_RESOLVERS));
+    }
+
+    /**
+     * Call this before setting ValueResolvers
+     * to make sure that the default ValueResolvers
+     * are not added.
+     *
+     * @return This Builder
+     */
+    public Builder withoutDefaultResolvers() {
+      withDefaultResolvers = false;
+      return this;
     }
 
     /**
@@ -292,8 +309,8 @@ public class Context {
      */
     public Builder resolver(final ValueResolver... resolvers) {
       notEmpty(resolvers, "At least one value-resolver must be present.");
-      boolean mapResolver = Stream.of(resolvers).anyMatch(MapValueResolver.class::isInstance);
-      if (!mapResolver) {
+      boolean setMapResolver = withDefaultResolvers && !Stream.of(resolvers).anyMatch(MapValueResolver.class::isInstance);
+      if (setMapResolver) {
         ValueResolver[] safeResolvers = new ValueResolver[resolvers.length + 1];
         System.arraycopy(resolvers, 0, safeResolvers, 0, resolvers.length);
         safeResolvers[safeResolvers.length - 1] = MapValueResolver.INSTANCE;
@@ -301,6 +318,7 @@ public class Context {
       } else {
         context.setResolver(new CompositeValueResolver(resolvers));
       }
+
       return this;
     }
 
@@ -317,7 +335,7 @@ public class Context {
       merged.addAll(Arrays.asList(ValueResolver.VALUE_RESOLVERS));
       merged.addAll(Arrays.asList(resolvers));
       context.setResolver(
-          new CompositeValueResolver(merged.toArray(new ValueResolver[merged.size()])));
+              new CompositeValueResolver(merged.toArray(new ValueResolver[merged.size()])));
       return this;
     }
 
@@ -747,7 +765,7 @@ public class Context {
    * @return A new block param context.
    */
   public static Context newBlockParamContext(final Context parent, final List<String> names,
-      final List<Object> values) {
+          final List<Object> values) {
     Map<String, Object> hash = new HashMap<>();
     for (int i = 0; i < Math.min(values.size(), names.size()); i++) {
       hash.put(names.get(i), values.get(i));
@@ -764,7 +782,7 @@ public class Context {
    * @return A new context.
    */
   public static Context newPartialContext(final Context ctx, final String scope,
-      final Map<String, Object> hash) {
+          final Map<String, Object> hash) {
     return new PartialCtx(ctx, ctx.get(scope), hash);
   }
 
